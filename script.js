@@ -1,11 +1,11 @@
 //your code here
 const images = [
-          "https://picsum.photos/id/237/200/300",
-          "https://picsum.photos/seed/picsum/200/300",
-          "https://picsum.photos/200/300?grayscale",
-          "https://picsum.photos/200/300/",
-          "https://picsum.photos/200/300.jpg",
-        ];
+  {src: "https://picsum.photos/id/237/200/300", class: "img1"},
+  {src: "https://picsum.photos/seed/picsum/200/300", class: "img2"},
+  {src: "https://picsum.photos/200/300?grayscale", class: "img3"},
+  {src: "https://picsum.photos/200/300/", class: "img4"},
+  {src: "https://picsum.photos/200/300.jpg", class: "img5"},
+];
 
         const container = document.getElementById("image-container");
         const resetBtn = document.getElementById("reset");
@@ -35,26 +35,26 @@ const images = [
           loadImages();
         }
 
-        function loadImages() {
-          // Pick one random index for duplicate
-          const duplicateIndex = Math.floor(Math.random() * images.length);
+function loadImages() {
+  const duplicateIndex = Math.floor(Math.random() * images.length);
 
-          // Build 6 images: 5 unique + duplicate of one random
-          let sixImages = [...images];
-          sixImages.push(images[duplicateIndex]);
+  // Create 6 images: 5 unique + 1 duplicate object (with class and src)
+  let sixImages = [...images];
+  sixImages.push(images[duplicateIndex]);
 
-          // Shuffle the 6 images array
-          shuffle(sixImages);
+  shuffle(sixImages);
 
-          // Create img elements
-          sixImages.forEach((src, index) => {
-            const img = document.createElement("img");
-            img.src = src;
-            img.dataset.index = index; // index for internal use
-            img.dataset.src = src; // store src for comparison
-            container.appendChild(img);
-          });
-        }
+  container.innerHTML = ""; // clear container
+
+  sixImages.forEach((imgData, index) => {
+    const img = document.createElement("img");
+    img.src = imgData.src;
+    img.classList.add(imgData.class);  // important for Cypress tests
+    img.dataset.index = index;
+    img.dataset.src = imgData.src;
+    container.appendChild(img);
+  });
+}
 
         // Handle image click
         function onImageClick(e) {
