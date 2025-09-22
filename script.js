@@ -1,122 +1,69 @@
-//your code here
 const images = [
-  {src: "https://picsum.photos/id/237/200/300", class: "img1"},
-  {src: "https://picsum.photos/seed/picsum/200/300", class: "img2"},
-  {src: "https://picsum.photos/200/300?grayscale", class: "img3"},
-  {src: "https://picsum.photos/200/300/", class: "img4"},
-  {src: "https://picsum.photos/200/300.jpg", class: "img5"},
-];
+    {src: "https://picsum.photos/id/237/200/300", class: "img1"},
+    {src: "https://picsum.photos/seed/picsum/200/300", class: "img2"},
+    {src: "https://picsum.photos/200/300?grayscale", class: "img3"},
+    {src: "https://picsum.photos/200/300/", class: "img4"},
+    {src: "https://picsum.photos/200/300.jpg", class: "img5"},
+]
 
-        const container = document.getElementById("image-container");
-        const resetBtn = document.getElementById("reset");
-        const verifyBtn = document.getElementById("verify");
-        const message = document.getElementById("h");
-        const result = document.getElementById("para");
+let random = Math.floor(Math.random() * images.length);
 
-        let selectedIndices = [];
+let imageWithRandom = [...images]
 
-        // Shuffle function (Fisher-Yates)
-        function shuffle(array) {
-          for (let i = array.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]];
-          }
-          return array;
-        }
+imageWithRandom.push(images[random])
 
-        function resetState() {
-          selectedIndices = [];
-          result.textContent = "";
-          message.textContent = "Please click on the identical tiles to verify that you are not a robot.";
-          resetBtn.style.display = "none";
-          verifyBtn.style.display = "none";
-          // Remove all images and reload
-          container.innerHTML = "";
-          loadImages();
-        }
+shuffle(imageWithRandom)
 
-function loadImages() {
-  const duplicateIndex = Math.floor(Math.random() * images.length);
-
-  // Create 6 images: 5 unique + 1 duplicate object (with class and src)
-  let sixImages = [...images];
-  sixImages.push(images[duplicateIndex]);
-
-  shuffle(sixImages);
-
-  container.innerHTML = ""; // clear container
-
-  sixImages.forEach((imgData, index) => {
-    const img = document.createElement("img");
-    img.src = imgData.src;
-    img.classList.add(imgData.class);  // important for Cypress tests
-    img.dataset.index = index;
-    img.dataset.src = imgData.src;
-    container.appendChild(img);
-  });
+function shuffle(arr){
+    for(let i = arr.length - 1; i > 0; i--){
+        let shuf = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[shuf]] = [arr[shuf], arr[i]];
+    }
 }
 
-        // Handle image click
-        function onImageClick(e) {
-          if (e.target.tagName !== "IMG") return;
-          const img = e.target;
+const container = document.getElementById("image-container");
 
-          // If already selected, ignore click (no unselect)
-          if (img.classList.contains("selected")) return;
+imageWithRandom.forEach(imgObj => {
+    const img = document.createElement("img");
+    img.src = imgObj.src;
+    img.className = imgObj.class;
+    container.appendChild(img);
+	img.addEventListener("click", () => {
+		handleImageClick(img);
+	});
+});
 
-          if (selectedIndices.length >= 2) return; // Max 2 clicks only
+let selectedImages = [];
 
-          img.classList.add("selected");
-          selectedIndices.push(img);
+function handleImageClick(img){
+	if(selectedImages.includes(img) || selectedImages.length === 2) return;
+	img.classList.add("selected");
+	selectedImages.push(img);
 
-          if (selectedIndices.length === 1) {
-            // Show Reset button
-            resetBtn.style.display = "inline-block";
-            result.textContent = "";
-          }
+	document.getElementById("reset").style.display = "inline";
 
-          if (selectedIndices.length === 2) {
-            // Show Verify button only if two different images clicked
-            const sameImg = selectedIndices[0].dataset.src === selectedIndices[1].dataset.src;
-            verifyBtn.style.display = "inline-block";
-          }
-        }
+	if(selectedImages.length === 2){
+		document.getElementById("verify").style.display = "inline";
+	}
+}
 
-        // Verify click handler
-        function onVerifyClick() {
-          if (selectedIndices.length !== 2) return;
+document.getElementById("reset").addEventListener("click", () => {
+  selectedImages.forEach(img => img.classList.remove("selected"));
+  selectedImages = [];
 
-          const img1 = selectedIndices[0];
-          const img2 = selectedIndices[1];
+  document.getElementById("reset").style.display = "none";
+  document.getElementById("verify").style.display = "none";
+  document.getElementById("para").textContent = "";
+});
 
-          verifyBtn.style.display = "none";
+document.getElementById("verify").addEventListener("click", () => {
+	const [img1, img2] = selectedImages;
 
-          if (img1.dataset.src === img2.dataset.src) {
-            result.textContent = "You are a human. Congratulations!";
-            result.style.color = "green";
-          } else {
-            result.textContent = "We can't verify you as a human. You selected the non-identical tiles.";
-            result.style.color = "red";
-          }
-        }
+	if(img1.src === img2.src){
+		document.getElementById("para").textContent = "You are a human. Congratulations!";
+	} else {
+		document.getElementById("para").textContent = "We can't verify you as a human. You selected the non-identical tiles.";
+	}
 
-        // Reset click handler
-        function onResetClick() {
-          // Reset everything
-          selectedIndices.forEach(img => img.classList.remove("selected"));
-          selectedIndices = [];
-          verifyBtn.style.display = "none";
-          resetBtn.style.display = "none";
-          result.textContent = "";
-          message.textContent = "Please click on the identical tiles to verify that you are not a robot.";
-        }
-
-        // Initialize
-        function init() {
-          loadImages();
-          container.addEventListener("click", onImageClick);
-          resetBtn.addEventListener("click", onResetClick);
-          verifyBtn.addEventListener("click", onVerifyClick);
-        }
-
-        init();
+	document.getElementById("verify").style.display = "none";
+});
